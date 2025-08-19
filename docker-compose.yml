@@ -4,8 +4,11 @@ services:
     build: .
     container_name: tpspeek
     ports:
+      - "443:443"
       - "8000:8000"
     environment:
-      - OPENAI_API_KEY=YOUR_OPENAI_KEY
+      - OPENAI_API_KEY=your_openai_api_key_here
     volumes:
       - ./app:/app
+      - ./web_ui:/web_ui
+      - ./certs:/certs
