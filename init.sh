@@ -1,18 +1,11 @@
 #!/bin/bash
-echo "🚀 TPspeek Auto Setup Start..."
-
-# อัปเดตเซิร์ฟเวอร์
-apt-get update && apt-get upgrade -y
-apt-get install -y docker.io docker-compose git
-
-# ดึงโค้ดจาก repo (กรณีคุณใส่ GitHub/Gitee)
-# git clone https://github.com/yourrepo/tpspeek.git
-cd tpspeek
-
-# สร้าง ENV
-echo "OPENAI_API_KEY=ใส่คีย์ของคุณ" > .env
-
-# สร้าง container
-docker-compose up -d --build
-
-echo "✅ ติดตั้งเสร็จแล้ว! เปิดใช้งานได้ที่ http://YOUR_SERVER_IP/"
+set -e
+PROJECT_DIR=$(pwd)
+mkdir -p backend/app frontend data
+cat > .env.example <<'ENV'
+OPENAI_API_KEY=
+USE_EXTERNAL_STT_TTS=true
+ADMIN_EMAIL=admin@example.com
+ENV
+# (the rest of files are included in this repo doc; please save them into the right paths)
+echo "Scaffold created. Edit .env and run: docker-compose up -d --build"
