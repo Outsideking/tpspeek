@@ -1,9 +1,8 @@
 import whisper
 from coqui_ai_tts import TTS
 
-# โหลดโมเดล
 stt_model = whisper.load_model("base")
-tts_model = TTS("en-us")  # ปรับภาษาตามต้องการ
+tts_model = TTS("en-us")
 
 def speech_to_text(audio_file_path: str, lang: str) -> str:
     result = stt_model.transcribe(audio_file_path, language=lang)
