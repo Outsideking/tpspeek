@@ -1,0 +1,24 @@
+from fastapi import Request, HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+import time
+
+class RateLimiterMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, max_requests=100, period=60):
+        super().__init__(app)
+        self.max_requests = max_requests
+        self.period = period
+        self.clients = {}
+
+    async def dispatch(self, request: Request, call_next):
+        client = request.headers.get("Authorization")
+        if not client:
+            return await call_next(request)
+        now = time.time()
+        window = self.clients.get(client, [])
+        # remove expired
+        window = [t for t in window if t > now - self.period]
+        if len(window) >= self.max_requests:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded")
+        window.append(now)
+        self.clients[client] = window
+        return await call_next(request)
