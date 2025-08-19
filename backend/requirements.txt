@@ -1,1 +1,9 @@
-
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+python-multipart
+openai
+python-jose[cryptography]
+passlib[bcrypt]
+requests
