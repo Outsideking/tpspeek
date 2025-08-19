@@ -1,10 +1,14 @@
-# STT & TTS logic
-# ตัวอย่าง STT & TTS (dummy)
+import whisper
+from coqui_ai_tts import TTS
+
+stt_model = whisper.load_model("base")
+tts_model = TTS("en-us")  # ปรับได้ตามภาษาที่ต้องการ
+
 def speech_to_text(audio_file_path: str, lang: str) -> str:
-    # TODO: integrate Whisper/STT model
-    return f"[Recognized {lang}] dummy text"
+    result = stt_model.transcribe(audio_file_path, language=lang)
+    return result["text"]
 
 def text_to_speech(text: str, lang: str) -> str:
-    # TODO: integrate Coqui/OpenAI TTS
-    audio_url = "https://example.com/dummy_audio.mp3"
-    return audio_url
+    file_path = f"/tmp/output_{lang}.wav"
+    tts_model.tts_to_file(text=text, file_path=file_path, speaker=lang)
+    return file_path
