@@ -1,5 +1,3 @@
-
-from fastapi import HTTPException
 from .models import User, SessionLocal
 import secrets
 from .billing import calculate_price
