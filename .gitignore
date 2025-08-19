@@ -1,1 +1,8 @@
-
+cat > .gitignore <<'IGN'
+__pycache__/
+*.pyc
+.env
+data/
+certs/
+*.sqlite3
+IGN
