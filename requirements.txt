@@ -1,9 +1,7 @@
 fastapi
-uvicorn[standard]
-pydantic
+uvicorn
 sqlalchemy
 python-multipart
-websockets
 openai
-coqui-ai-tts
 whisper
+coqui-ai-tts
