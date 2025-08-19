@@ -1,5 +1,9 @@
 fastapi
 uvicorn[standard]
-sqlalchemy
 pydantic
+sqlalchemy
 python-multipart
+websockets
+openai
+coqui-ai-tts
+whisper
