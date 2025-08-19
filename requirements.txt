@@ -1,1 +1,10 @@
 
+fastapi
+uvicorn[standard]
+pydantic
+sqlalchemy
+python-multipart
+websockets
+openai
+coqui-ai-tts
+whisper
