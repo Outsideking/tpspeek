@@ -1,4 +1,3 @@
-# API Key authentication
 from fastapi import Request, HTTPException
 from .models import SessionLocal, APIKey
 
