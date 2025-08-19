@@ -1,1 +1,23 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TPspeek API Key Manager</title>
+</head>
+<body>
+  <h1>TPspeek API Key Generator</h1>
+  <form id="keyForm">
+    <button type="submit">Generate API Key</button>
+  </form>
+  <pre id="result"></pre>
+  <script>
+    const form = document.getElementById('keyForm');
+    const result = document.getElementById('result');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/generate-key', { method: 'POST' });
+      const data = await res.json();
+      result.textContent = JSON.stringify(data, null, 2);
+    });
+  </script>
+</body>
+</html>
