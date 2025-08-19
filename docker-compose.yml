@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  tpspeek:
+    build: .
+    container_name: tpspeek
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=YOUR_OPENAI_KEY
+    volumes:
+      - ./app:/app
