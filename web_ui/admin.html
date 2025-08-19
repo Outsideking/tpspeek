@@ -1,1 +1,25 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+<title>TPspeek Admin Panel</title>
+</head>
+<body>
+<h1>Users & Billing</h1>
+<table border="1">
+<thead><tr><th>ID</th><th>Name</th><th>Email</th><th>API Key</th><th>Version</th><th>Languages</th><th>Monthly</th><th>Yearly</th><th>Plan End</th><th>Active</th></tr></thead>
+<tbody id="userTable"></tbody>
+</table>
+<script>
+async function loadUsers(){
+    const res = await fetch('/admin/users');
+    const users = await res.json();
+    const tbody = document.getElementById('userTable');
+    tbody.innerHTML = '';
+    users.forEach(u=>{
+        tbody.innerHTML += `<tr><td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.api_key}</td><td>${u.version}</td><td>${u.num_languages}</td><td>${u.monthly_price}</td><td>${u.yearly_price}</td><td>${u.plan_end}</td><td>${u.active}</td></tr>`;
+    });
+}
+loadUsers();
+</script>
+</body>
+</html>
