@@ -1,0 +1,6 @@
+import logging
+
+logging.basicConfig(filename="tpspeek.log", level=logging.INFO, format='%(asctime)s %(message)s')
+
+def log_request(api_key: str, endpoint: str):
+    logging.info(f"API_KEY: {api_key}, ENDPOINT: {endpoint}")
