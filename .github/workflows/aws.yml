@@ -1,4 +1,24 @@
-# This workflow will build and push a new container image to Amazon ECR,
+{
+  "Comment": "TPspeek Auto Translate Workflow",
+  "StartAt": "UploadAudio",
+  "States": {
+    "UploadAudio": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::s3:putObject",
+      "Next": "TranslateAudio"
+    },
+    "TranslateAudio": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:TranslateAudioFunction",
+      "Next": "GenerateTTS"
+    },
+    "GenerateTTS": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:REGION:ACCOUNT_ID:function:GenerateTTSFunction",
+      "End": true
+    }
+  }
+}# This workflow will build and push a new container image to Amazon ECR,
 # and then will deploy a new task definition to Amazon ECS, when there is a push to the "main" branch.
 #
 # To use this workflow, you will need to complete the following set-up steps:
