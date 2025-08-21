@@ -1,1 +1,21 @@
+version: '3.8'
 
+services:
+  scanzaclip_backend:
+    build: ./backend/scanzaclip
+    ports:
+      - "5000:5000"
+    depends_on:
+      - tpspeek_backend
+
+  tpspeek_backend:
+    build: ./backend/tpspeek_api
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - scanzaclip_backend
