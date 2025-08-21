@@ -1,1 +1,157 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: TPspeek API (Lambda + API Gateway + S3 + KMS + CloudWatch Logs)
 
+Parameters:
+  StackPrefix:
+    Type: String
+    Default: tpspeek
+  OutputBucketName:
+    Type: String
+    Description: Bucket for outputs (will be created if not exists)
+    Default: tpspeek-outputs-12345
+  LambdaMemory:
+    Type: Number
+    Default: 1536
+  LambdaTimeout:
+    Type: Number
+    Default: 300
+  Region:
+    Type: String
+    Default: ap-southeast-2
+
+Resources:
+  OutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref OutputBucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+  TpspeekKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      Description: KMS key for TPspeek S3 encryption
+  TpspeekKMSAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${StackPrefix}-s3
+      TargetKeyId: !Ref TpspeekKMSKey
+
+  TpspeekLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${StackPrefix}-handler"
+      RetentionInDays: 90
+
+  TpspeekRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${StackPrefix}-lambda-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: TpspeekAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${OutputBucketName}
+                  - !Sub arn:aws:s3:::${OutputBucketName}/*
+              - Effect: Allow
+                Action:
+                  - transcribe:StartTranscriptionJob
+                  - transcribe:GetTranscriptionJob
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - comprehend:DetectDominantLanguage
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - translate:TranslateText
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - polly:SynthesizeSpeech
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:Encrypt
+                  - kms:GenerateDataKey
+                Resource: "*"
+
+  TpspeekLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${StackPrefix}-handler"
+      Handler: handler.handler
+      Runtime: python3.11
+      Role: !GetAtt TpspeekRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemory
+      Environment:
+        Variables:
+          OUTPUT_BUCKET: !Ref OutputBucketName
+          AWS_REGION: !Ref Region
+      Code:
+        ZipFile: |
+          # (deploy script will upload proper code zip, but CloudFormation inline used as fallback)
+          import json
+          def handler(event, context):
+              return {"statusCode":200,"body":"deployed"}
+  Api:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub "${StackPrefix}-http-api"
+      ProtocolType: HTTP
+  ApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref Api
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FnGetAttLambda.Arn}/invocations
+        - FnGetAttLambda:
+            Arn: !GetAtt TpspeekLambda.Arn
+  LambdaPermissionForApi:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref TpspeekLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/*/*/*"
+  ApiRouteDefault:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref Api
+      RouteKey: "$default"
+      Target: !Sub "integrations/${ApiIntegration}"
+  ApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref Api
+      StageName: '$default'
+      AutoDeploy: true
+
+Outputs:
+  ApiEndpoint:
+    Value: !Sub "${Api}.execute-api.${AWS::Region}.amazonaws.com"
+  LambdaName:
+    Value: !Ref TpspeekLambda
+  OutputBucketName:
+    Value: !Ref OutputBucketName
