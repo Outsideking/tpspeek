@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: KMS for CloudWatch Logs + association (optional legacy decrypt)
+
+Parameters:
+  LogGroupName:
+    Type: String
+  KmsAlias:
+    Type: String
+    Default: cw-logs
+  RetentionInDays:
+    Type: Number
+    Default: 30
+
+Resources:
+  CwKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      Description: KMS key for CloudWatch Logs encryption
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: key-default-1
+        Statement:
+          - Sid: EnableRoot
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: AllowCloudWatchLogsUseKey
+            Effect: Allow
+            Principal:
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:Describe*
+            Resource: "*"
+            Condition:
+              ArnLike:
+                kms:EncryptionContext:aws:logs:arn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupName}
+
+  CwKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${KmsAlias}
+      TargetKeyId: !Ref CwKmsKey
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref LogGroupName
+      KmsKeyId: !GetAtt CwKmsKey.Arn
+      RetentionInDays: !Ref RetentionInDays
+
+Outputs:
+  KmsKeyArn:
+    Value: !GetAtt CwKmsKey.Arn
+  LogGroupOut:
+    Value: !Ref LogGroupName
