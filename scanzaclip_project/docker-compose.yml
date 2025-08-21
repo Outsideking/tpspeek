@@ -7,6 +7,8 @@ services:
       - "5000:5000"
     depends_on:
       - tpspeek_backend
+    environment:
+      - TPSPEEK_API_KEY=${TPSPEEK_API_KEY}
 
   tpspeek_backend:
     build: ./backend/tpspeek_api
