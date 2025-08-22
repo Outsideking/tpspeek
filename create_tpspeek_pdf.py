@@ -1,1 +1,1 @@
-pip install fpdf
+pip install fpdf qrcode pillow
