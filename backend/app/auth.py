@@ -1,12 +1,20 @@
-from fastapi import Request, HTTPException
-from .users import get_user_by_key
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+import hashlib
 
-async def verify_api_key(request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or "Bearer " not in auth_header:
-        raise HTTPException(status_code=401, detail="Missing API Key")
-    token = auth_header.split(" ")[1]
-    user = get_user_by_key(token)
-    if not user:
-        raise HTTPException(status_code=403, detail="Invalid API Key")
-    return user
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+_users = {
+    "admin": {"password_hash": hashlib.sha256(b"admin").hexdigest(), "role": "superadmin"}
+}
+
+class LoginIn(BaseModel):
+    username: str
+    password: str
+
+@router.post("/login")
+def login(info: LoginIn):
+    user = _users.get(info.username)
+    if user and user["password_hash"] == hashlib.sha256(info.password.encode()).hexdigest():
+        return {"access_token": "fake-token", "role": user["role"]}
+    raise HTTPException(status_code=401, detail="Invalid credentials")
