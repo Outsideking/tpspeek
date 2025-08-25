@@ -1,14 +1,11 @@
 from fastapi import FastAPI
-from app import auth, api_manager, finance, automation, translation
+from app.backend.login import routes as login_routes
 
-app = FastAPI(title="TPspeek_Enterprise Backend")
+app = FastAPI(title="TPspeek Backend")
 
-app.include_router(auth.router)
-app.include_router(api_manager.router)
-app.include_router(finance.router)
-app.include_router(automation.router)
-app.include_router(translation.router)
+# รวม router
+app.include_router(login_routes.router, prefix="/auth", tags=["Auth"])
 
-@app.get("/health")
-def health():
-    return {"status":"ok"}
+@app.get("/")
+def root():
+    return {"message": "Welcome to TPspeek Backend 🚀"}
